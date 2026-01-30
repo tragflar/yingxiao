@@ -547,24 +547,32 @@ const UserOutreach: React.FC = () => {
 
                 <div>
                    <label className="block text-sm font-medium text-slate-700 mb-1.5">触达类型</label>
-                   <div className="flex gap-2">
-                      <button
-                        onClick={() => setFormData({...formData, type: 'comment'})}
-                        className={`flex-1 py-2 px-3 rounded-lg border text-sm font-medium transition-all ${
-                          formData.type === 'comment' ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-slate-200 text-slate-600 hover:bg-slate-50'
-                        }`}
-                      >
-                        评论触达
-                      </button>
-                      <button
-                        onClick={() => setFormData({...formData, type: 'live'})}
-                        className={`flex-1 py-2 px-3 rounded-lg border text-sm font-medium transition-all ${
-                          formData.type === 'live' ? 'border-purple-600 bg-purple-50 text-purple-700' : 'border-slate-200 text-slate-600 hover:bg-slate-50'
-                        }`}
-                      >
-                        直播触达
-                      </button>
-                   </div>
+                   {!isEditMode ? (
+                     <div className="flex gap-2">
+                        <button
+                          onClick={() => setFormData({...formData, type: 'comment'})}
+                          className={`flex-1 py-2 px-3 rounded-lg border text-sm font-medium transition-all ${
+                            formData.type === 'comment' ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                          }`}
+                        >
+                          评论触达
+                        </button>
+                        <button
+                          onClick={() => setFormData({...formData, type: 'live'})}
+                          className={`flex-1 py-2 px-3 rounded-lg border text-sm font-medium transition-all ${
+                            formData.type === 'live' ? 'border-purple-600 bg-purple-50 text-purple-700' : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                          }`}
+                        >
+                          直播触达
+                        </button>
+                     </div>
+                   ) : (
+                     <div className="w-full py-2 px-4 rounded-lg bg-slate-100 border border-slate-200 text-slate-600 text-sm font-medium flex items-center gap-2">
+                        <div className={`w-2 h-2 rounded-full ${formData.type === 'comment' ? 'bg-blue-500' : 'bg-purple-500'}`} />
+                        {formData.type === 'comment' ? '评论触达' : '直播触达'}
+                        <span className="text-xs text-slate-400 ml-auto font-normal">不可修改</span>
+                     </div>
+                   )}
                 </div>
 
                 <div>

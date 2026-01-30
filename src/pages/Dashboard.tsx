@@ -304,7 +304,7 @@ const Dashboard: React.FC = () => {
     switch (source) {
       case 'live': return '直播';
       case 'organic': return '自然流';
-      case 'ads': return '广告';
+      case 'ads': return '短视频';
       default: return source;
     }
   };
@@ -686,7 +686,7 @@ const Dashboard: React.FC = () => {
       {/* 2. Ad Performance Board */}
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <h3 className="text-lg font-bold text-slate-800">广告转化详情</h3>
+          <h3 className="text-lg font-bold text-slate-800">短视频转化详情</h3>
           <div className="flex items-center gap-3">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
@@ -718,7 +718,7 @@ const Dashboard: React.FC = () => {
           <table className="w-full text-left text-sm text-slate-600">
             <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
-                <th className="px-6 py-4 font-semibold text-slate-800">广告计划</th>
+                <th className="px-6 py-4 font-semibold text-slate-800">短视频计划</th>
                 <th className="px-6 py-4 font-semibold text-slate-800">抖音账号</th>
                 <th className="px-6 py-4 font-semibold text-slate-800 text-right">进线量 (Incoming)</th>
                 <th className="px-6 py-4 font-semibold text-slate-800 text-right">开口量 (Opening)</th>
@@ -766,7 +766,7 @@ const Dashboard: React.FC = () => {
                             <table className="w-full text-sm">
                               <thead className="bg-slate-100/50">
                                 <tr className="text-slate-500">
-                                  <th className="py-2 pl-8 text-left font-medium w-[200px]">广告素材ID</th>
+                                  <th className="py-2 pl-8 text-left font-medium w-[200px]">短视频ID</th>
                                   <th className="py-2 text-right font-medium w-[150px]">进线量</th>
                                   <th className="py-2 text-right font-medium w-[150px]">开口量</th>
                                   <th className="py-2 text-right font-medium w-[120px]">开口率</th>
