@@ -37,7 +37,7 @@ const MOCK_ACCOUNTS: DouyinAccount[] = [
 
 const INITIAL_PLANS: OutreachPlan[] = [
   {
-    id: '1',
+    id: '10001',
     name: '双11预热评论触达',
     type: 'comment',
     content: '亲，看到您对我们的产品感兴趣，双11预热活动正在进行中，现在预定享额外优惠哦！',
@@ -49,7 +49,7 @@ const INITIAL_PLANS: OutreachPlan[] = [
     ]
   },
   {
-    id: '2',
+    id: '10002',
     name: '晚间直播间弹幕跟进',
     type: 'live',
     content: '感谢关注！点击下方链接领取专属粉丝福利，不要错过哦~',
@@ -60,7 +60,7 @@ const INITIAL_PLANS: OutreachPlan[] = [
     ]
   },
   {
-    id: '3',
+    id: '10003',
     name: '新品发布意向用户回访',
     type: 'comment',
     content: '您好，我们注意到您对新品很感兴趣，现邀请您成为首批体验官...',
@@ -246,8 +246,11 @@ const UserOutreach: React.FC = () => {
       }));
     } else {
       // Create new plan
+      const maxId = Math.max(...plans.map(p => parseInt(p.id) || 0), 10000);
+      const newId = (maxId + 1).toString();
+      
       const newPlan: OutreachPlan = {
-        id: Date.now().toString(),
+        id: newId,
         name: formData.name,
         type: formData.type,
         collectPhone: formData.collectPhone,
@@ -413,6 +416,7 @@ const UserOutreach: React.FC = () => {
                     className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                   />
                 </th>
+                <th className="px-4 py-4 font-semibold text-slate-800 w-16">ID</th>
                 <th className="px-4 py-4 font-semibold text-slate-800">抖音账号</th>
                 <th className="px-4 py-4 font-semibold text-slate-800">计划名称</th>
                 <th className="px-4 py-4 font-semibold text-slate-800">类型</th>
@@ -439,6 +443,7 @@ const UserOutreach: React.FC = () => {
                           className={`rounded border-slate-300 text-blue-600 focus:ring-blue-500 ${row.status !== 'active' ? 'opacity-50 cursor-not-allowed' : ''}`}
                         />
                       </td>
+                      <td className="px-4 py-4 text-slate-500 text-xs font-mono">{row.planId}</td>
                       <td className="px-4 py-4 font-medium text-slate-800">{row.accountName}</td>
                       <td className="px-4 py-4 text-slate-600">{row.planName}</td>
                       <td className="px-4 py-4">
@@ -580,40 +585,61 @@ const UserOutreach: React.FC = () => {
                 </div>
               </div>
 
-              {/* Step 2: Select Accounts */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  选择执行账号 <span className="text-slate-400 font-normal text-xs">(已选 {formData.selectedAccounts.length} 个)</span>
-                </label>
-                <div className="grid grid-cols-2 gap-3 max-h-40 overflow-y-auto p-1">
-                  {MOCK_ACCOUNTS.map(acc => (
-                    <label 
-                      key={acc.id}
-                      className={`flex items-center p-3 border rounded-lg cursor-pointer transition-all ${
-                        formData.selectedAccounts.includes(acc.id)
-                          ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500'
-                          : 'border-slate-200 hover:border-blue-300'
-                      }`}
-                    >
-                      <input
-                        type="checkbox"
-                        className="hidden"
-                        checked={formData.selectedAccounts.includes(acc.id)}
-                        onChange={() => {
-                          const newSelection = formData.selectedAccounts.includes(acc.id)
-                            ? formData.selectedAccounts.filter(id => id !== acc.id)
-                            : [...formData.selectedAccounts, acc.id];
-                          setFormData({...formData, selectedAccounts: newSelection});
-                        }}
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-slate-800 truncate">{acc.name}</div>
-                      </div>
-                      {formData.selectedAccounts.includes(acc.id) && <CheckCircle2 size={16} className="text-blue-600 ml-2" />}
-                    </label>
-                  ))}
+              {/* Step 2: Select Accounts (Create Mode Only) */}
+              {!isEditMode && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    选择执行账号 <span className="text-slate-400 font-normal text-xs">(已选 {formData.selectedAccounts.length} 个)</span>
+                  </label>
+                  <div className="grid grid-cols-2 gap-3 max-h-40 overflow-y-auto p-1">
+                    {MOCK_ACCOUNTS.map(acc => (
+                      <label 
+                        key={acc.id}
+                        className={`flex items-center p-3 border rounded-lg cursor-pointer transition-all ${
+                          formData.selectedAccounts.includes(acc.id)
+                            ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500'
+                            : 'border-slate-200 hover:border-blue-300'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          className="hidden"
+                          checked={formData.selectedAccounts.includes(acc.id)}
+                          onChange={() => {
+                            const newSelection = formData.selectedAccounts.includes(acc.id)
+                              ? formData.selectedAccounts.filter(id => id !== acc.id)
+                              : [...formData.selectedAccounts, acc.id];
+                            setFormData({...formData, selectedAccounts: newSelection});
+                          }}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium text-slate-800 truncate">{acc.name}</div>
+                        </div>
+                        {formData.selectedAccounts.includes(acc.id) && <CheckCircle2 size={16} className="text-blue-600 ml-2" />}
+                      </label>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {/* Display Selected Accounts in Edit Mode (Read Only) */}
+              {isEditMode && (
+                <div>
+                   <label className="block text-sm font-medium text-slate-700 mb-2">
+                     执行账号 <span className="text-slate-400 font-normal text-xs">(共 {formData.selectedAccounts.length} 个)</span>
+                   </label>
+                   <div className="flex flex-wrap gap-2">
+                     {formData.selectedAccounts.map(accId => {
+                       const acc = MOCK_ACCOUNTS.find(a => a.id === accId);
+                       return acc ? (
+                         <span key={accId} className="px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-sm">
+                           {acc.name}
+                         </span>
+                       ) : null;
+                     })}
+                   </div>
+                </div>
+              )}
 
               {/* Step 3: Content */}
               <div>
