@@ -210,7 +210,10 @@ const AGENT_PERFORMANCE_BASE: AgentPerformance[] = [
 ];
 
 const Dashboard: React.FC = () => {
-  const [dateRange, setDateRange] = useState('last7');
+  const [dateRange, setDateRange] = useState('yesterday');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  
   const [openingRateSort, setOpeningRateSort] = useState<'top' | 'bottom'>('top');
   const [leadsSort, setLeadsSort] = useState<'top' | 'bottom'>('top');
   const [conversionRateSort, setConversionRateSort] = useState<'top' | 'bottom'>('top');
@@ -227,9 +230,25 @@ const Dashboard: React.FC = () => {
   const [liveAccountFilter, setLiveAccountFilter] = useState('all');
 
   // Helper function to adjust data based on date range
-  const adjustData = (data: any[], range: string) => {
+  const adjustData = (data: any[], range: string, start?: string, end?: string) => {
     // Multipliers for simulation
-    const multiplier = range === 'today' ? 0.14 : range === 'yesterday' ? 0.15 : range === 'last30' ? 4.2 : 1;
+    let multiplier = 1;
+    
+    if (range === 'today') {
+      multiplier = 0.14;
+    } else if (range === 'yesterday') {
+      multiplier = 0.15;
+    } else if (range === 'last30') {
+      multiplier = 4.2;
+    } else if (range === 'custom' && start && end) {
+      const startD = new Date(start);
+      const endD = new Date(end);
+      const diffTime = Math.abs(endD.getTime() - startD.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 to include start day
+      multiplier = Math.max(0.1, diffDays / 7); // Base on weekly rate
+    } else {
+      multiplier = 1; // last7 default
+    }
     
     return data.map(item => {
       const newItem = { ...item };
@@ -270,9 +289,9 @@ const Dashboard: React.FC = () => {
   };
 
   // Memoized data based on dateRange
-  const agentPerformance = useMemo(() => adjustData(AGENT_PERFORMANCE_BASE, dateRange), [dateRange]);
-  const adPerformance = useMemo(() => adjustData(AD_PERFORMANCE_BASE, dateRange), [dateRange]);
-  const livePerformance = useMemo(() => adjustData(LIVE_PERFORMANCE_BASE, dateRange), [dateRange]);
+  const agentPerformance = useMemo(() => adjustData(AGENT_PERFORMANCE_BASE, dateRange, startDate, endDate), [dateRange, startDate, endDate]);
+  const adPerformance = useMemo(() => adjustData(AD_PERFORMANCE_BASE, dateRange, startDate, endDate), [dateRange, startDate, endDate]);
+  const livePerformance = useMemo(() => adjustData(LIVE_PERFORMANCE_BASE, dateRange, startDate, endDate), [dateRange, startDate, endDate]);
 
   // Overview stats based on dateRange
   const overviewStats = useMemo(() => {
@@ -280,7 +299,22 @@ const Dashboard: React.FC = () => {
     const baseOpening = 2560;
     const baseLeads = 342;
     
-    const multiplier = dateRange === 'today' ? 0.14 : dateRange === 'yesterday' ? 0.15 : dateRange === 'last30' ? 4.2 : 1;
+    let multiplier = 1;
+    if (dateRange === 'today') {
+      multiplier = 0.14;
+    } else if (dateRange === 'yesterday') {
+      multiplier = 0.15;
+    } else if (dateRange === 'last30') {
+      multiplier = 4.2;
+    } else if (dateRange === 'custom' && startDate && endDate) {
+      const startD = new Date(startDate);
+      const endD = new Date(endDate);
+      const diffTime = Math.abs(endD.getTime() - startD.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+      multiplier = Math.max(0.1, diffDays / 7);
+    } else {
+      multiplier = 1;
+    }
     
     const incoming = Math.floor(baseIncoming * multiplier);
     const opening = Math.floor(baseOpening * multiplier);
@@ -288,7 +322,7 @@ const Dashboard: React.FC = () => {
     const conversionRate = opening > 0 ? ((leads / opening) * 100).toFixed(1) + '%' : '0.0%';
 
     return { incoming, opening, leads, conversionRate };
-  }, [dateRange]);
+  }, [dateRange, startDate, endDate]);
 
   const toggleRow = (id: string) => {
     const newExpanded = new Set(expandedRows);
@@ -311,21 +345,40 @@ const Dashboard: React.FC = () => {
   
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <h2 className="text-2xl font-bold text-slate-800">数据看板</h2>
-        <div className="relative flex items-center gap-2 text-sm text-slate-500 bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm">
-          <Calendar size={16} />
-          <select 
-            value={dateRange}
-            onChange={(e) => setDateRange(e.target.value)}
-            className="appearance-none bg-transparent outline-none pr-6 cursor-pointer font-medium text-slate-600"
-          >
-            <option value="today">今日</option>
-            <option value="yesterday">昨日</option>
-            <option value="last7">最近 7 天</option>
-            <option value="last30">最近 30 天</option>
-          </select>
-          <ChevronDown size={14} className="absolute right-3 pointer-events-none" />
+        <div className="flex flex-wrap items-center gap-2">
+          {dateRange === 'custom' && (
+             <div className="flex items-center gap-2 bg-white px-2 py-1.5 rounded-lg border border-slate-200 shadow-sm animate-in fade-in slide-in-from-right-4 duration-300">
+                <input 
+                  type="date" 
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="text-sm border-none outline-none text-slate-600 bg-transparent"
+                />
+                <span className="text-slate-400">-</span>
+                <input 
+                  type="date" 
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="text-sm border-none outline-none text-slate-600 bg-transparent"
+                />
+             </div>
+          )}
+          <div className="relative flex items-center gap-2 text-sm text-slate-500 bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm">
+            <Calendar size={16} />
+            <select 
+              value={dateRange}
+              onChange={(e) => setDateRange(e.target.value)}
+              className="appearance-none bg-transparent outline-none pr-6 cursor-pointer font-medium text-slate-600"
+            >
+              <option value="yesterday">昨日</option>
+              <option value="last7">最近 7 天</option>
+              <option value="last30">最近 30 天</option>
+              <option value="custom">自定义时间</option>
+            </select>
+            <ChevronDown size={14} className="absolute right-3 pointer-events-none" />
+          </div>
         </div>
       </div>
 
@@ -335,7 +388,7 @@ const Dashboard: React.FC = () => {
           <div className="flex justify-between items-start">
             <div>
               <p className="text-sm font-medium text-slate-500">
-                {dateRange === 'today' ? '今日' : dateRange === 'yesterday' ? '昨日' : dateRange === 'last30' ? '30日' : '7日'}总接待量
+                总进线量
               </p>
               <h3 className="text-3xl font-bold text-slate-800 mt-2">{overviewStats.incoming.toLocaleString()}</h3>
             </div>
@@ -349,7 +402,7 @@ const Dashboard: React.FC = () => {
           <div className="flex justify-between items-start">
             <div>
               <p className="text-sm font-medium text-slate-500">
-                {dateRange === 'today' ? '今日' : dateRange === 'yesterday' ? '昨日' : dateRange === 'last30' ? '30日' : '7日'}开口数
+                开口数
               </p>
               <h3 className="text-3xl font-bold text-slate-800 mt-2">{overviewStats.opening.toLocaleString()}</h3>
             </div>
@@ -363,7 +416,7 @@ const Dashboard: React.FC = () => {
           <div className="flex justify-between items-start">
             <div>
               <p className="text-sm font-medium text-slate-500">
-                {dateRange === 'today' ? '今日' : dateRange === 'yesterday' ? '昨日' : dateRange === 'last30' ? '30日' : '7日'}留资数
+                留资数
               </p>
               <h3 className="text-3xl font-bold text-slate-800 mt-2">{overviewStats.leads.toLocaleString()}</h3>
             </div>
@@ -377,7 +430,7 @@ const Dashboard: React.FC = () => {
           <div className="flex justify-between items-start">
             <div>
               <p className="text-sm font-medium text-slate-500">
-                {dateRange === 'today' ? '今日' : dateRange === 'yesterday' ? '昨日' : dateRange === 'last30' ? '30日' : '7日'}平均转化率
+                平均转化率
               </p>
               <h3 className="text-3xl font-bold text-slate-800 mt-2">{overviewStats.conversionRate}</h3>
             </div>
