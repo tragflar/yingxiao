@@ -458,49 +458,34 @@ const AIMarketing: React.FC = () => {
             )}
 
             {generatedResult && (
-              <div className="w-full h-full flex flex-col md:flex-row">
-                {/* Script Panel */}
-                <div className="flex-1 p-6 overflow-y-auto border-r border-slate-200 bg-white">
-                  <h4 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
-                    <FileText size={18} className="text-blue-500" />
-                    AI 生成脚本
-                  </h4>
-                  <div className="prose prose-slate prose-sm max-w-none whitespace-pre-wrap text-slate-600 bg-slate-50 p-4 rounded-lg border border-slate-100">
-                    {generatedResult.script}
+              <div className="w-full h-full flex flex-col items-center justify-center relative bg-black">
+                <div className="relative w-full h-full flex items-center justify-center">
+                  <img 
+                    src={generatedResult.videoUrl!} 
+                    alt="Generated Video Preview" 
+                    className="max-w-full max-h-full object-contain"
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center cursor-pointer hover:scale-110 transition-transform group/play">
+                      <Play size={40} className="text-white fill-white ml-1 group-hover/play:scale-110 transition-transform" />
+                    </div>
                   </div>
                 </div>
-
-                {/* Video Preview Panel */}
-                <div className="w-full md:w-[400px] bg-black flex flex-col items-center justify-center relative">
-                  <div className="relative w-full h-full flex items-center justify-center">
-                    <img 
-                      src={generatedResult.videoUrl!} 
-                      alt="Generated Video Preview" 
-                      className="max-w-full max-h-full object-contain opacity-80"
-                    />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center cursor-pointer hover:scale-110 transition-transform">
-                        <Play size={32} className="text-white fill-white ml-1" />
-                      </div>
-                    </div>
-                    <div className="absolute bottom-4 right-4 bg-black/60 text-white text-xs px-2 py-1 rounded">
-                      预览模式
-                    </div>
+                
+                {/* Action Bar */}
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6 flex justify-between items-end">
+                  <div>
+                    <h3 className="text-white font-bold text-lg mb-1">{formData.template ? TEMPLATES.find(t => t.id === formData.template)?.name : 'AI 生成视频'}</h3>
+                    <p className="text-white/70 text-sm">生成时间：{new Date().toLocaleTimeString()}</p>
                   </div>
-                  
-                  {/* Action Bar */}
-                  <div className="w-full bg-slate-900 p-4 flex justify-between items-center border-t border-slate-800">
-                    <div className="flex gap-2">
-                      <button className="p-2 rounded-lg bg-slate-800 text-white hover:bg-slate-700 transition-colors" title="下载">
-                        <Download size={18} />
-                      </button>
-                      <button className="p-2 rounded-lg bg-slate-800 text-white hover:bg-slate-700 transition-colors" title="分享">
-                        <Share2 size={18} />
-                      </button>
-                    </div>
-                    <button className="bg-purple-600 text-white px-6 py-2 rounded-lg font-bold text-sm hover:bg-purple-700 transition-all flex items-center gap-2">
-                      <Film size={16} />
-                      发布到抖音
+                  <div className="flex gap-3">
+                    <button className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 text-white backdrop-blur-md hover:bg-white/20 transition-all border border-white/10">
+                      <Download size={18} />
+                      <span className="text-sm font-medium">下载视频</span>
+                    </button>
+                    <button className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 text-white backdrop-blur-md hover:bg-white/20 transition-all border border-white/10">
+                      <Share2 size={18} />
+                      <span className="text-sm font-medium">分享</span>
                     </button>
                   </div>
                 </div>
