@@ -22,6 +22,7 @@ interface SourceDetail {
 interface AgentPerformance {
   id: string;
   name: string;
+  strategy: string; // 欢迎语策略
   incoming: number;
   opening: number;
   leads: number;
@@ -57,15 +58,20 @@ interface MaterialDetail {
 
 interface AdPerformance extends AgentPerformance {
   accountName: string;
+  region: string; // 区域
+  store: string; // 门店
   materials?: MaterialDetail[];
 }
 
-// Mock Data for Ad Performance
+// Mock Data for Ad Performance (Short Video)
 const AD_PERFORMANCE_BASE: AdPerformance[] = [
   {
     id: 'ad-1',
     name: '双11大促通投计划',
     accountName: '抖音-美妆旗舰店',
+    strategy: '首付999',
+    region: '华东大区',
+    store: '上海旗舰店',
     incoming: 5400,
     opening: 4800,
     leads: 650,
@@ -85,6 +91,9 @@ const AD_PERFORMANCE_BASE: AdPerformance[] = [
     id: 'ad-2',
     name: '朋友圈精选投放',
     accountName: '微信-品牌官方号',
+    strategy: '首付1999',
+    region: '华南大区',
+    store: '广州总店',
     incoming: 3200,
     opening: 2900,
     leads: 380,
@@ -103,6 +112,9 @@ const AD_PERFORMANCE_BASE: AdPerformance[] = [
     id: 'ad-3',
     name: '品牌词搜索保护',
     accountName: '百度-企业推广',
+    strategy: '0首付',
+    region: '华北大区',
+    store: '北京体验店',
     incoming: 1500,
     opening: 1450,
     leads: 280,
@@ -119,6 +131,9 @@ const AD_PERFORMANCE_BASE: AdPerformance[] = [
     id: 'ad-4',
     name: '直播间投流计划A',
     accountName: '抖音-华东分销商',
+    strategy: '置换补贴',
+    region: '华东大区',
+    store: '杭州直营店',
     incoming: 4200,
     opening: 3800,
     leads: 520,
@@ -139,7 +154,8 @@ const AD_PERFORMANCE_BASE: AdPerformance[] = [
 const AGENT_PERFORMANCE_BASE: AgentPerformance[] = [
   { 
     id: '1', 
-    name: '品牌主账号-美妆', 
+    name: 'AI 客服助手 A', 
+    strategy: '首付999',
     incoming: 1250, 
     opening: 1100, 
     leads: 150, 
@@ -153,7 +169,8 @@ const AGENT_PERFORMANCE_BASE: AgentPerformance[] = [
   },
   { 
     id: '2', 
-    name: '品牌主账号-服饰', 
+    name: 'AI 客服助手 B', 
+    strategy: '首付1999',
     incoming: 980, 
     opening: 850, 
     leads: 98, 
@@ -167,7 +184,8 @@ const AGENT_PERFORMANCE_BASE: AgentPerformance[] = [
   },
   { 
     id: '3', 
-    name: '分销商账号-华东', 
+    name: 'AI 客服助手 C', 
+    strategy: '首付2999',
     incoming: 2100, 
     opening: 1950, 
     leads: 310, 
@@ -181,7 +199,8 @@ const AGENT_PERFORMANCE_BASE: AgentPerformance[] = [
   },
   { 
     id: '4', 
-    name: '分销商账号-华南', 
+    name: 'AI 客服助手 D', 
+    strategy: '0首付',
     incoming: 1800, 
     opening: 1600, 
     leads: 220, 
@@ -195,7 +214,8 @@ const AGENT_PERFORMANCE_BASE: AgentPerformance[] = [
   },
   { 
     id: '5', 
-    name: 'AI 客服助手 A', 
+    name: 'AI 客服助手 E', 
+    strategy: '置换补贴',
     incoming: 3500, 
     opening: 3450, 
     leads: 525, 
@@ -221,10 +241,10 @@ const Dashboard: React.FC = () => {
 
   // Separate states for search and filter for each board
   const [agentSearch, setAgentSearch] = useState('');
-  const [agentAccountFilter, setAgentAccountFilter] = useState('all');
+  const [agentStrategyFilter, setAgentStrategyFilter] = useState('all');
 
   const [adSearch, setAdSearch] = useState('');
-  const [adAccountFilter, setAdAccountFilter] = useState('all');
+  const [adRegionFilter, setAdRegionFilter] = useState('all');
 
   const [liveSearch, setLiveSearch] = useState('');
   const [liveAccountFilter, setLiveAccountFilter] = useState('all');
@@ -321,7 +341,22 @@ const Dashboard: React.FC = () => {
     const leads = Math.floor(baseLeads * multiplier);
     const conversionRate = opening > 0 ? ((leads / opening) * 100).toFixed(1) + '%' : '0.0%';
 
-    return { incoming, opening, leads, conversionRate };
+    // Mock previous period stats for WoW/MoM
+    const prevIncoming = Math.floor(incoming * 0.95);
+    const prevOpening = Math.floor(opening * 0.92);
+    const prevLeads = Math.floor(leads * 0.88);
+    const prevConversionRate = prevOpening > 0 ? ((prevLeads / prevOpening) * 100).toFixed(1) + '%' : '0.0%';
+
+    // Calculate changes
+    const incomingChange = ((incoming - prevIncoming) / prevIncoming * 100).toFixed(1);
+    const openingChange = ((opening - prevOpening) / prevOpening * 100).toFixed(1);
+    const leadsChange = ((leads - prevLeads) / prevLeads * 100).toFixed(1);
+    const conversionChange = (parseFloat(conversionRate) - parseFloat(prevConversionRate)).toFixed(1);
+
+    return { 
+      incoming, opening, leads, conversionRate,
+      incomingChange, openingChange, leadsChange, conversionChange
+    };
   }, [dateRange, startDate, endDate]);
 
   const toggleRow = (id: string) => {
@@ -391,6 +426,13 @@ const Dashboard: React.FC = () => {
                 总进线量
               </p>
               <h3 className="text-3xl font-bold text-slate-800 mt-2">{overviewStats.incoming.toLocaleString()}</h3>
+              <div className="flex items-center gap-1 mt-2">
+                <span className={`text-xs font-medium flex items-center ${parseFloat(overviewStats.incomingChange) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {parseFloat(overviewStats.incomingChange) >= 0 ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+                  {Math.abs(parseFloat(overviewStats.incomingChange))}%
+                </span>
+                <span className="text-xs text-slate-400">较上期</span>
+              </div>
             </div>
             <div className="p-3 bg-blue-50 text-blue-600 rounded-lg">
               <MessageSquare size={24} />
@@ -405,6 +447,13 @@ const Dashboard: React.FC = () => {
                 开口数
               </p>
               <h3 className="text-3xl font-bold text-slate-800 mt-2">{overviewStats.opening.toLocaleString()}</h3>
+              <div className="flex items-center gap-1 mt-2">
+                <span className={`text-xs font-medium flex items-center ${parseFloat(overviewStats.openingChange) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {parseFloat(overviewStats.openingChange) >= 0 ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+                  {Math.abs(parseFloat(overviewStats.openingChange))}%
+                </span>
+                <span className="text-xs text-slate-400">较上期</span>
+              </div>
             </div>
             <div className="p-3 bg-indigo-50 text-indigo-600 rounded-lg">
               <MessageSquare size={24} />
@@ -419,6 +468,13 @@ const Dashboard: React.FC = () => {
                 留资数
               </p>
               <h3 className="text-3xl font-bold text-slate-800 mt-2">{overviewStats.leads.toLocaleString()}</h3>
+              <div className="flex items-center gap-1 mt-2">
+                <span className={`text-xs font-medium flex items-center ${parseFloat(overviewStats.leadsChange) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {parseFloat(overviewStats.leadsChange) >= 0 ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+                  {Math.abs(parseFloat(overviewStats.leadsChange))}%
+                </span>
+                <span className="text-xs text-slate-400">较上期</span>
+              </div>
             </div>
             <div className="p-3 bg-green-50 text-green-600 rounded-lg">
               <Target size={24} />
@@ -433,6 +489,13 @@ const Dashboard: React.FC = () => {
                 平均转化率
               </p>
               <h3 className="text-3xl font-bold text-slate-800 mt-2">{overviewStats.conversionRate}</h3>
+              <div className="flex items-center gap-1 mt-2">
+                <span className={`text-xs font-medium flex items-center ${parseFloat(overviewStats.conversionChange) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {parseFloat(overviewStats.conversionChange) >= 0 ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+                  {Math.abs(parseFloat(overviewStats.conversionChange))}%
+                </span>
+                <span className="text-xs text-slate-400">较上期</span>
+              </div>
             </div>
             <div className="p-3 bg-purple-50 text-purple-600 rounded-lg">
               <TrendingUp size={24} />
@@ -637,13 +700,13 @@ const Dashboard: React.FC = () => {
             <div className="relative">
               <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
               <select
-                value={agentAccountFilter}
-                onChange={(e) => setAgentAccountFilter(e.target.value)}
+                value={agentStrategyFilter}
+                onChange={(e) => setAgentStrategyFilter(e.target.value)}
                 className="pl-9 pr-8 py-1.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white min-w-[140px]"
               >
-                <option value="all">全部账号</option>
-                {Array.from(new Set(AGENT_PERFORMANCE_BASE.map(i => i.name))).map(account => (
-                  <option key={account} value={account}>{account}</option>
+                <option value="all">全部策略</option>
+                {Array.from(new Set(AGENT_PERFORMANCE_BASE.map(i => i.strategy))).map(strategy => (
+                  <option key={strategy} value={strategy}>{strategy}</option>
                 ))}
               </select>
               <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={14} />
@@ -655,6 +718,7 @@ const Dashboard: React.FC = () => {
             <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
                 <th className="px-6 py-4 font-semibold text-slate-800">账号名称</th>
+                <th className="px-6 py-4 font-semibold text-slate-800">欢迎语策略</th>
                 <th className="px-6 py-4 font-semibold text-slate-800 text-right">进线量 (Incoming)</th>
                 <th className="px-6 py-4 font-semibold text-slate-800 text-right">开口量 (Opening)</th>
                 <th className="px-6 py-4 font-semibold text-slate-800 text-right">开口率</th>
@@ -667,8 +731,8 @@ const Dashboard: React.FC = () => {
               {agentPerformance
                 .filter(item => {
                   const matchesSearch = item.name.toLowerCase().includes(agentSearch.toLowerCase());
-                  const matchesAccount = agentAccountFilter === 'all' || item.name === agentAccountFilter;
-                  return matchesSearch && matchesAccount;
+                  const matchesStrategy = agentStrategyFilter === 'all' || item.strategy === agentStrategyFilter;
+                  return matchesSearch && matchesStrategy;
                 })
                 .map((item) => {
                 const openingRate = ((item.opening / item.incoming) * 100).toFixed(1) + '%';
@@ -686,6 +750,11 @@ const Dashboard: React.FC = () => {
                         {isExpanded ? <ChevronDown size={16} className="text-slate-400" /> : <ChevronRight size={16} className="text-slate-400" />}
                         {item.name}
                       </td>
+                      <td className="px-6 py-4">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          {item.strategy}
+                        </span>
+                      </td>
                       <td className="px-6 py-4 text-right">{item.incoming.toLocaleString()}</td>
                       <td className="px-6 py-4 text-right">{item.opening.toLocaleString()}</td>
                       <td className="px-6 py-4 text-right text-blue-600">{openingRate}</td>
@@ -695,7 +764,7 @@ const Dashboard: React.FC = () => {
                     </tr>
                     {isExpanded && (
                       <tr className="bg-slate-50/50">
-                        <td colSpan={7} className="px-6 py-0">
+                        <td colSpan={8} className="px-6 py-0">
                           <div className="border-t border-slate-100 my-2">
                             <table className="w-full text-sm">
                               <tbody>
@@ -713,6 +782,7 @@ const Dashboard: React.FC = () => {
                                         }`}></div>
                                         {getSourceLabel(detail.source)}
                                       </td>
+                                      <td className="py-3 text-left w-[150px]"></td> {/* Spacer for Strategy Column */}
                                       <td className="py-3 text-right w-[150px]">{detail.incoming.toLocaleString()}</td>
                                       <td className="py-3 text-right w-[150px]">{detail.opening.toLocaleString()}</td>
                                       <td className="py-3 text-right w-[120px]">{detailOpeningRate}</td>
@@ -754,13 +824,13 @@ const Dashboard: React.FC = () => {
             <div className="relative">
               <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
               <select
-                value={adAccountFilter}
-                onChange={(e) => setAdAccountFilter(e.target.value)}
+                value={adRegionFilter}
+                onChange={(e) => setAdRegionFilter(e.target.value)}
                 className="pl-9 pr-8 py-1.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white min-w-[140px]"
               >
-                <option value="all">全部账号</option>
-                {Array.from(new Set(AD_PERFORMANCE_BASE.map(i => i.accountName))).map(account => (
-                  <option key={account} value={account}>{account}</option>
+                <option value="all">全部区域</option>
+                {Array.from(new Set(AD_PERFORMANCE_BASE.map(i => i.region))).map(region => (
+                  <option key={region} value={region}>{region}</option>
                 ))}
               </select>
               <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={14} />
@@ -772,7 +842,7 @@ const Dashboard: React.FC = () => {
             <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
                 <th className="px-6 py-4 font-semibold text-slate-800">短视频计划</th>
-                <th className="px-6 py-4 font-semibold text-slate-800">抖音账号</th>
+                <th className="px-6 py-4 font-semibold text-slate-800">所属区域/门店</th>
                 <th className="px-6 py-4 font-semibold text-slate-800 text-right">进线量 (Incoming)</th>
                 <th className="px-6 py-4 font-semibold text-slate-800 text-right">开口量 (Opening)</th>
                 <th className="px-6 py-4 font-semibold text-slate-800 text-right">开口率</th>
@@ -785,8 +855,8 @@ const Dashboard: React.FC = () => {
               {adPerformance
                 .filter(item => {
                   const matchesSearch = item.name.toLowerCase().includes(adSearch.toLowerCase());
-                  const matchesAccount = adAccountFilter === 'all' || item.accountName === adAccountFilter;
-                  return matchesSearch && matchesAccount;
+                  const matchesRegion = adRegionFilter === 'all' || item.region === adRegionFilter;
+                  return matchesSearch && matchesRegion;
                 })
                 .map((item) => {
                 const openingRate = ((item.opening / item.incoming) * 100).toFixed(1) + '%';
@@ -804,7 +874,12 @@ const Dashboard: React.FC = () => {
                         {isExpanded ? <ChevronDown size={16} className="text-slate-400" /> : <ChevronRight size={16} className="text-slate-400" />}
                         {item.name}
                       </td>
-                      <td className="px-6 py-4 font-medium text-slate-600">{item.accountName}</td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col">
+                          <span className="font-medium text-slate-700">{item.region}</span>
+                          <span className="text-xs text-slate-400">{item.store}</span>
+                        </div>
+                      </td>
                       <td className="px-6 py-4 text-right">{item.incoming.toLocaleString()}</td>
                       <td className="px-6 py-4 text-right">{item.opening.toLocaleString()}</td>
                       <td className="px-6 py-4 text-right text-blue-600">{openingRate}</td>
@@ -820,6 +895,7 @@ const Dashboard: React.FC = () => {
                               <thead className="bg-slate-100/50">
                                 <tr className="text-slate-500">
                                   <th className="py-2 pl-8 text-left font-medium w-[200px]">短视频ID</th>
+                                  <th className="py-2 text-left w-[150px]"></th> {/* Spacer */}
                                   <th className="py-2 text-right font-medium w-[150px]">进线量</th>
                                   <th className="py-2 text-right font-medium w-[150px]">开口量</th>
                                   <th className="py-2 text-right font-medium w-[120px]">开口率</th>
@@ -840,6 +916,7 @@ const Dashboard: React.FC = () => {
                                         <div className="w-2 h-2 rounded-full bg-indigo-400"></div>
                                         {material.materialId}
                                       </td>
+                                      <td className="py-3"></td> {/* Spacer */}
                                       <td className="py-3 text-right">{material.incoming.toLocaleString()}</td>
                                       <td className="py-3 text-right">{material.opening.toLocaleString()}</td>
                                       <td className="py-3 text-right">{materialOpeningRate}</td>
@@ -862,7 +939,6 @@ const Dashboard: React.FC = () => {
           </table>
         </div>
       </div>
-
       {/* 3. Live Performance Board */}
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">

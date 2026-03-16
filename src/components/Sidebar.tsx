@@ -1,11 +1,14 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { UploadCloud, Image, Users, Settings, ShieldAlert, LayoutDashboard, Send, Repeat, MessageSquarePlus, Wallet } from 'lucide-react';
+import { UploadCloud, Image, Users, Settings, ShieldAlert, LayoutDashboard, Send, Repeat, MessageSquarePlus, Wallet, Map, BrainCircuit, Wand2 } from 'lucide-react';
 
 const Sidebar: React.FC = () => {
   const navItems = [
     { name: '批量上传', path: '/', icon: <UploadCloud size={20} /> },
     { name: '数据看板', path: '/dashboard', icon: <LayoutDashboard size={20} /> },
+    { name: '战区看板', path: '/region', icon: <Map size={20} /> },
+    { name: '智能诊断', path: '/insight', icon: <BrainCircuit size={20} /> },
+    { name: 'AI 营销', path: '/ai-marketing', icon: <Wand2 size={20} /> },
     { name: '计费看板', path: '/billing', icon: <Wallet size={20} /> },
     { name: '用户触达', path: '/outreach', icon: <Send size={20} /> },
     { name: '回访规则配置', path: '/return-visit-rules', icon: <Repeat size={20} /> },
